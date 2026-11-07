@@ -21,3 +21,11 @@ terraform.tfvars.json
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+
+# Datos generados
+datasets/csv/*.csv
+datasets/json/*.json
