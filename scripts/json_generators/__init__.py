@@ -1,0 +1,1 @@
+"""Generadores JSON de postventa para TechStore."""
