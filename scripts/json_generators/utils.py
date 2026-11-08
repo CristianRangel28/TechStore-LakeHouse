@@ -4,7 +4,7 @@ import json
 import random
 
 from datetime import datetime, timedelta
-from pathlib import Path
+
 
 from .config import (
     JSON_ENCODING,
@@ -13,7 +13,6 @@ from .config import (
     MIN_DAYS_AFTER_SALE,
     POST_SALES_COUNTS,
     POST_SALES_SEED,
-    TOTAL_POST_SALES,
 )
 
 from scripts.generators.config import COUNTS
