@@ -1,11 +1,22 @@
 """Configuración central de los generadores de TechStore."""
 
 from pathlib import Path
+import argparse
 
 # La carpeta de salida queda dentro del proyecto, independientemente
 # del directorio desde el que se ejecute un script.
 PROJECT_DIR = Path(__file__).resolve().parents[2]
-OUTPUT_DIR = PROJECT_DIR / "datasets" / "csv"
+DATA_DIR = PROJECT_DIR / "data"
+LOTE_DEFAULT = 1
+
+
+def parse_lote():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--lote", type=int, default=LOTE_DEFAULT)
+    lote = parser.parse_args().lote
+    if lote != LOTE_DEFAULT:
+        parser.error("la generación para lotes distintos de 1 aún no está soportada")
+    return lote
 
 SEED = 20261106
 

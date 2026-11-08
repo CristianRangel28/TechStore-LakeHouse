@@ -60,11 +60,9 @@ TechStore-LakeHouse/
 │   │   ├── validate_json.py
 │   │   └── README.md
 │   │
-│   └── datasets/
-│       ├── csv/
-│       └── json/
-│           ├── garantias.json
-│           └── devoluciones.json
+├── data/
+│   ├── garantias/lote=1/garantias.json
+│   └── devoluciones/lote=1/devoluciones.json
 │
 └── docs/
     └── MANUAL_GENERACION_DATOS_JSON.md
@@ -296,7 +294,7 @@ Ejemplo ilustrativo:
 ### Archivo generado
 
 ```text
-scripts/datasets/json/garantias.json
+data/garantias/lote=1/garantias.json
 ```
 
 Cantidad esperada: **500.000 registros**.
@@ -431,7 +429,7 @@ Los cálculos monetarios utilizan `Decimal` para evitar imprecisiones propias de
 ### Archivo generado
 
 ```text
-scripts/datasets/json/devoluciones.json
+data/devoluciones/lote=1/devoluciones.json
 ```
 
 Cantidad esperada: **494.495 registros**.
@@ -461,7 +459,7 @@ La asignación se reutiliza mediante la caché implementada en `utils.py`.
 Desde la raíz del proyecto:
 
 ```powershell
-python -m scripts.json_generators.generate_all
+python -m scripts.json_generators.generate_all --lote 1
 ```
 
 ### Resultado esperado
@@ -542,7 +540,7 @@ Comprueba que las cantidades devueltas no superen las cantidades adquiridas y qu
 ### Comando de ejecución
 
 ```powershell
-python -m scripts.json_generators.validate_json
+python -m scripts.json_generators.validate_json --lote 1
 ```
 
 ### Resultado de la validación definitiva
@@ -682,10 +680,10 @@ Estas tablas se almacenarán utilizando Apache Iceberg.
 
 | Actividad | Comando |
 |---|---|
-| Generar garantías y devoluciones | `python -m scripts.json_generators.generate_all` |
-| Generar únicamente garantías | `python -m scripts.json_generators.generate_warranties` |
-| Generar únicamente devoluciones | `python -m scripts.json_generators.generate_returns` |
-| Validar los archivos JSON | `python -m scripts.json_generators.validate_json` |
+| Generar garantías y devoluciones | `python -m scripts.json_generators.generate_all --lote 1` |
+| Generar únicamente garantías | `python -m scripts.json_generators.generate_warranties --lote 1` |
+| Generar únicamente devoluciones | `python -m scripts.json_generators.generate_returns --lote 1` |
+| Validar los archivos JSON | `python -m scripts.json_generators.validate_json --lote 1` |
 
 **Nota:** La generación individual utiliza la misma asignación determinista de ventas. Para producir el conjunto completo de forma coordinada, se recomienda utilizar `generate_all.py`.
 

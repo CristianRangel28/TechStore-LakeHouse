@@ -1,6 +1,6 @@
 """Genera detalle_ventas.csv. Requiere productos y la misma config que ventas."""
 
-from .config import COUNTS
+from .config import COUNTS, LOTE_DEFAULT, parse_lote
 from .sales_data import build_sale_and_details
 from .utils import open_csv, print_completion
 
@@ -10,8 +10,8 @@ FIELDS = [
 ]
 
 
-def generate():
-    file_obj, writer, path = open_csv("detalle_ventas.csv", FIELDS)
+def generate(lote=LOTE_DEFAULT):
+    file_obj, writer, path = open_csv("detalle_ventas.csv", FIELDS, lote)
     detail_id = 1
 
     try:
@@ -43,4 +43,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    generate(parse_lote())

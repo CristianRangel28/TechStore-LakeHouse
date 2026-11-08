@@ -234,7 +234,7 @@ Es importante ejecutar los comandos desde la raíz del proyecto para que las imp
 Para generar todos los archivos CSV, ejecutar:
 
 ```powershell
-python -m scripts.generators.generate_all
+python -m scripts.generators.generate_all --lote 1
 ```
 
 Este comando ejecuta automáticamente los generadores en el siguiente orden:
@@ -256,43 +256,43 @@ También es posible ejecutar cada generador de manera independiente.
 Por ejemplo, para generar únicamente los clientes:
 
 ```powershell
-python -m scripts.generators.generate_customers
+python -m scripts.generators.generate_customers --lote 1
 ```
 
 Para generar las marcas:
 
 ```powershell
-python -m scripts.generators.generate_brands
+python -m scripts.generators.generate_brands --lote 1
 ```
 
 Para generar los productos:
 
 ```powershell
-python -m scripts.generators.generate_products
+python -m scripts.generators.generate_products --lote 1
 ```
 
 Para generar las sucursales:
 
 ```powershell
-python -m scripts.generators.generate_branches
+python -m scripts.generators.generate_branches --lote 1
 ```
 
 Para generar los métodos de pago:
 
 ```powershell
-python -m scripts.generators.generate_payment_methods
+python -m scripts.generators.generate_payment_methods --lote 1
 ```
 
 Para generar las ventas:
 
 ```powershell
-python -m scripts.generators.generate_sales
+python -m scripts.generators.generate_sales --lote 1
 ```
 
 Para generar los detalles de ventas:
 
 ```powershell
-python -m scripts.generators.generate_sales_details
+python -m scripts.generators.generate_sales_details --lote 1
 ```
 
 **Consideración:** los generadores individuales no ejecutan automáticamente los demás. Por eso, antes de generar ventas y detalles, se recomienda haber generado las dimensiones correspondientes. Los generadores de ventas utilizan los rangos de identificadores definidos en la configuración.
@@ -304,22 +304,20 @@ python -m scripts.generators.generate_sales_details
 Todos los archivos CSV se almacenan automáticamente en:
 
 ```text
-datasets/csv/
+data/<tabla>/lote=1/<tabla>.csv
 ```
 
 Después de una ejecución completa, la estructura será:
 
 ```text
-datasets/
-├── csv/
-│   ├── clientes.csv
-│   ├── marcas.csv
-│   ├── productos.csv
-│   ├── sucursales.csv
-│   ├── metodos_pago.csv
-│   ├── ventas.csv
-│   └── detalle_ventas.csv
-└── json/
+data/
+├── clientes/lote=1/clientes.csv
+├── marcas/lote=1/marcas.csv
+├── productos/lote=1/productos.csv
+├── sucursales/lote=1/sucursales.csv
+├── metodos_pago/lote=1/metodos_pago.csv
+├── ventas/lote=1/ventas.csv
+└── detalle_ventas/lote=1/detalle_ventas.csv
 ```
 
 Los archivos utilizan:
@@ -369,7 +367,7 @@ Se recomienda no cerrar la terminal mientras se ejecuta el proceso.
 
 ## 10. Verificación posterior a la generación
 
-Una vez finalizada la ejecución, se debe comprobar que los siete archivos CSV existan dentro de `datasets/csv/`.
+Una vez finalizada la ejecución, se debe comprobar que los siete archivos CSV existan dentro de `data/<tabla>/lote=1/`.
 
 También se debe verificar que la cantidad de registros coincida con la configuración.
 

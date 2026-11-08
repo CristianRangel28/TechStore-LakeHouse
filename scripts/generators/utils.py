@@ -6,7 +6,8 @@ import random
 from datetime import datetime, timedelta
 
 from .config import (
-    OUTPUT_DIR,
+    DATA_DIR,
+    LOTE_DEFAULT,
     CSV_ENCODING,
     CSV_DELIMITER,
     START_DATE,
@@ -15,15 +16,15 @@ from .config import (
 )
 
 
-def open_csv(filename, fields):
+def open_csv(filename, fields, lote=LOTE_DEFAULT):
     """
     Crea un archivo CSV, escribe sus encabezados
     y devuelve el archivo, el writer y su ruta.
     """
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    path = OUTPUT_DIR / filename
+    table_dir = DATA_DIR / filename.rsplit(".", 1)[0] / f"lote={lote}"
+    table_dir.mkdir(parents=True, exist_ok=True)
+    path = table_dir / filename
 
     file_obj = open(
         path,

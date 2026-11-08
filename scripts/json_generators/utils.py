@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 
 from .config import (
     JSON_ENCODING,
-    JSON_OUTPUT_DIR,
+    DATA_DIR,
+    LOTE_DEFAULT,
     MAX_DAYS_AFTER_SALE,
     MIN_DAYS_AFTER_SALE,
     POST_SALES_COUNTS,
@@ -96,7 +97,7 @@ def create_request_date(sale_datetime, rng):
 # ESCRITURA JSON LINES
 # ==========================================================
 
-def write_json_lines(records, filename):
+def write_json_lines(records, filename, lote=LOTE_DEFAULT):
     """
     Escribe registros JSON uno por línea.
 
@@ -104,12 +105,9 @@ def write_json_lines(records, filename):
     todos los registros en memoria.
     """
 
-    JSON_OUTPUT_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    output_path = JSON_OUTPUT_DIR / filename
+    table_dir = DATA_DIR / filename.rsplit(".", 1)[0] / f"lote={lote}"
+    table_dir.mkdir(parents=True, exist_ok=True)
+    output_path = table_dir / filename
 
     count = 0
 

@@ -1,6 +1,6 @@
 """Genera ventas.csv. Requiere las dimensiones ya generadas."""
 
-from .config import COUNTS
+from .config import COUNTS, LOTE_DEFAULT, parse_lote
 from .sales_data import build_sale_and_details
 from .utils import open_csv, print_completion
 
@@ -10,8 +10,8 @@ FIELDS = [
 ]
 
 
-def generate():
-    file_obj, writer, path = open_csv("ventas.csv", FIELDS)
+def generate(lote=LOTE_DEFAULT):
+    file_obj, writer, path = open_csv("ventas.csv", FIELDS, lote)
     try:
         for sale_id in range(1, COUNTS["sales"] + 1):
             sale_row, _ = build_sale_and_details(sale_id)
@@ -26,4 +26,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    generate(parse_lote())

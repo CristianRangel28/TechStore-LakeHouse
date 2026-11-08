@@ -2,7 +2,7 @@
 
 import random
 
-from .config import COUNTS, END_DATE, SEED, START_DATE
+from .config import COUNTS, END_DATE, LOTE_DEFAULT, SEED, START_DATE, parse_lote
 from .utils import open_csv, print_completion, random_date, write_batches
 
 FIRST_NAMES = [
@@ -30,9 +30,9 @@ FIELDS = [
 ]
 
 
-def generate():
+def generate(lote=LOTE_DEFAULT):
     rng = random.Random(SEED)
-    file_obj, writer, path = open_csv("clientes.csv", FIELDS)
+    file_obj, writer, path = open_csv("clientes.csv", FIELDS, lote)
 
     def rows():
         for customer_id in range(1, COUNTS["customers"] + 1):
@@ -60,4 +60,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    generate(parse_lote())

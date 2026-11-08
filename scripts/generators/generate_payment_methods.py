@@ -1,5 +1,6 @@
 """Genera metodos_pago.csv."""
 
+from .config import LOTE_DEFAULT, parse_lote
 from .utils import open_csv, print_completion
 
 PAYMENT_METHODS = [
@@ -12,8 +13,8 @@ PAYMENT_METHODS = [
 FIELDS = ["id_metodo_pago", "nombre", "descripcion", "estado"]
 
 
-def generate():
-    file_obj, writer, path = open_csv("metodos_pago.csv", FIELDS)
+def generate(lote=LOTE_DEFAULT):
+    file_obj, writer, path = open_csv("metodos_pago.csv", FIELDS, lote)
     try:
         for method_id, (name, description) in enumerate(PAYMENT_METHODS, start=1):
             writer.writerow({
@@ -29,4 +30,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    generate(parse_lote())

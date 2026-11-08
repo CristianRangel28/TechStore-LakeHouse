@@ -18,6 +18,7 @@ from .utils import (
     create_request_date,
     write_json_lines,
 )
+from scripts.generators.config import LOTE_DEFAULT, parse_lote
 
 
 # ==========================================================
@@ -183,17 +184,18 @@ def return_records():
 # EJECUCIÓN
 # ==========================================================
 
-def generate_returns():
+def generate_returns(lote=LOTE_DEFAULT):
 
     return write_json_lines(
         return_records(),
         "devoluciones.json",
+        lote,
     )
 
 
 if __name__ == "__main__":
 
-    path, count = generate_returns()
+    path, count = generate_returns(parse_lote())
 
     print(f"Archivo generado: {path}")
 
