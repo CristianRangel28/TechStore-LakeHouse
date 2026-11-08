@@ -3,7 +3,7 @@ from datetime import datetime
 
 import json
 from decimal import Decimal, InvalidOperation
-from pathlib import Path
+
 
 from scripts.generators.config import COUNTS
 from scripts.generators.sales_data import build_sale_and_details
