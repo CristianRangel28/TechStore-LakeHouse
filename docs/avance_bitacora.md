@@ -93,3 +93,27 @@ Formato de cada entrada: Qué hice / Qué aprendí o qué falló / Evidencia.
 
 ![data bronze](evidencias/terraform/data_bronze.png)
 ![glue rol](evidencias/terraform/crawler_apply.png)
+
+
+## 9 de noviembre de 2026 - Athena
+
+
+**Qué hice**
+
+- Creé el workgroup techstore-workgroup (aws_athena_workgroup): resultados en athena-results/, cifrado SSE_S3, motor versión 3, métricas en CloudWatch y tope de 5 GB escaneados por consulta (variable).
+- Probé SELECT COUNT(*) FROM raw_ventas: 1.500.000 filas, 137,31 MB escaneados.
+- Revisé ProcessedBytes en CloudWatch (AWS/Athena).
+
+**Qué aprendí**
+
+- Athena cobra por datos escaneados (unos 5 USD por TB, mínimo 10 MB por consulta), no por tiempo. La consulta de 137 MB cuesta unos 0,0007 USD.
+- Mis primeras consultas corrieron en el workgroup primary y guardaron resultados en un bucket de un taller anterior. Hay que elegir techstore-workgroup.
+- tfvars tiene prioridad sobre el default de una variable.
+- Con CSV, Athena escanea el archivo completo aunque pida una columna. Parquet/Iceberg debería reducir ese escaneo (por comprobar en Silver).
+
+**Evidencia**
+
+
+![athena apply](evidencias/terraform/athena.png)
+![consulta athena](evidencias/terraform/consulta.png)
+![athena results](evidencias/terraform/athena_results.png)
