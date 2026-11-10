@@ -117,3 +117,48 @@ Formato de cada entrada: Qué hice / Qué aprendí o qué falló / Evidencia.
 ![athena apply](evidencias/terraform/athena.png)
 ![consulta athena](evidencias/terraform/consulta.png)
 ![athena results](evidencias/terraform/athena_results.png)
+
+
+
+## 10 de noviembre de 2026 - Jobs de Glue (Bronze a Silver)
+
+
+**Qué hice**
+
+Escribí el job techstore-bronze-to-silver (aws_glue_job): Glue 5.1, 2 workers G.1X, timeout de 20 min y sin reintentos para cuidar el costo.
+La config de Iceberg va en Terraform: un local con --conf encadenado (extensión de Iceberg y catálogo glue_catalog sobre el warehouse/ del bucket), más --datalake-formats iceberg y --enable-glue-datacatalog.
+Probé el flujo con un script de prueba: leí raw_metodos_pago de Bronze y creé la tabla Iceberg test_metodos_pago en techstore_silver. La corrida duró 1 min 16 s y consumió 0,0425 DPU-horas (unos 0,02 USD).
+Definí el job techstore-silver-to-gold (pendiente del script de Cristian).
+
+**Qué aprendí**
+
+Job = orden de trabajo (qué script, qué rol, cuántos workers); cada ejecución es una corrida (run) con su propio id.
+Hay dos catálogos: sin prefijo lee las tablas normales de Bronze (CSV/JSON del Crawler); con glue_catalog. se escriben las tablas Iceberg de Silver y Gold.
+Una tabla Iceberg son archivos Parquet de datos y archivos de metadatos en warehouse/, más el esquema registrado en el Data Catalog.
+Problema encontrado: Athena respeta el encabezado del CSV, pero Spark lo lee como una fila más (salió una fila basura con el id en null). Se filtra con isNotNull() en la llave primaria o leyendo el CSV con header=True.
+createOrReplace() solo sirve para la carga inicial; para el lote 2 hay que usar MERGE INTO.
+Cada start-job-run crea una corrida nueva y no conviene lanzar varias seguidas: cuestan y no aportan.
+
+
+**Evidencia**
+
+![job 1 apply](evidencias/terraform/job_bronze_silve.png)
+![job 1 results](evidencias/terraform/ejecucion_bronze_silve.png)
+![job consults results](evidencias/terraform/respuesta_prueba_bronze_silver.png)
+
+
+**Qué hice (Gold):**
+
+Escribí el job techstore-silver-to-gold (misma config de Iceberg, lee de techstore_silver y escribe en techstore_gold).
+Probé el flujo con un script de prueba: leí test_metodos_pago de Silver y creé test_dim_payment_method en Gold, con payment_key como surrogate key (row_number) y el id original conservado como payment_method_id.
+Verifiqué en Athena: 5 filas, payment_key del 1 al 5.
+Con esto quedó probado el flujo Bronze, Silver y Gold con una tabla, de punta a punta.
+
+**Qué aprendí:**
+
+Las tablas Iceberg de Silver se leen con el prefijo del catálogo (glue_catalog.), y las tablas normales de Bronze sin prefijo.
+Una surrogate key es un número propio de la dimensión, distinto del id original del sistema fuente.
+row_number() sin partición mete todos los datos en una sola partición de Spark. Sirve para 5 filas, pero para dim_customer (500.000) puede ser lento o fallar. Hay que ver otra forma.
+Terraform no duplica recursos: compara el código con el tfstate y solo crea lo nuevo (el plan decía 1 to add).
+
+![job 2 results](evidencias/terraform/silver_gold_apply.png)
