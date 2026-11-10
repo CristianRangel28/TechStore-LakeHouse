@@ -2,7 +2,7 @@
 
 import random
 
-from .config import COUNTS, END_DATE, SEED
+from .config import COUNTS, END_DATE, LOTE_DEFAULT, SEED, parse_lote
 from .utils import open_csv, print_completion, random_date, write_batches
 
 KNOWN_BRANDS = [
@@ -22,9 +22,9 @@ COUNTRIES = ["China", "Estados Unidos", "Japon", "Corea del Sur", "Alemania"]
 FIELDS = ["id_marca", "nombre", "pais_origen", "fecha_registro", "estado"]
 
 
-def generate():
+def generate(lote=LOTE_DEFAULT):
     rng = random.Random(SEED + 1)
-    file_obj, writer, path = open_csv("marcas.csv", FIELDS)
+    file_obj, writer, path = open_csv("marcas.csv", FIELDS, lote)
 
     def rows():
         for brand_id in range(1, COUNTS["brands"] + 1):
@@ -53,4 +53,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    generate(parse_lote())

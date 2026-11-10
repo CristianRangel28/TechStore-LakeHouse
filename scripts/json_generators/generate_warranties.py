@@ -16,6 +16,7 @@ from .utils import (
     create_request_date,
     write_json_lines,
 )
+from scripts.generators.config import LOTE_DEFAULT, parse_lote
 
 
 # ==========================================================
@@ -139,17 +140,18 @@ def warranty_records():
 # EJECUCIÓN
 # ==========================================================
 
-def generate_warranties():
+def generate_warranties(lote=LOTE_DEFAULT):
 
     return write_json_lines(
         warranty_records(),
         "garantias.json",
+        lote,
     )
 
 
 if __name__ == "__main__":
 
-    path, count = generate_warranties()
+    path, count = generate_warranties(parse_lote())
 
     print(f"Archivo generado: {path}")
 

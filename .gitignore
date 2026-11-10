@@ -27,5 +27,5 @@ __pycache__/
 *.py[cod]
 
 # Datos generados
-scripts/datasets/csv/*.csv
-scripts/datasets/json/*.json
+data/**/*.csv
+data/**/*.json

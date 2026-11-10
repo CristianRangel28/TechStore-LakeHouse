@@ -2,7 +2,7 @@
 
 import random
 
-from .config import COUNTS, END_DATE, SEED
+from .config import COUNTS, END_DATE, LOTE_DEFAULT, SEED, parse_lote
 from .utils import open_csv, print_completion, random_date, write_batches
 
 CATEGORIES = [
@@ -15,9 +15,9 @@ FIELDS = [
 ]
 
 
-def generate():
+def generate(lote=LOTE_DEFAULT):
     rng = random.Random(SEED + 2)
-    file_obj, writer, path = open_csv("productos.csv", FIELDS)
+    file_obj, writer, path = open_csv("productos.csv", FIELDS, lote)
 
     def rows():
         for product_id in range(1, COUNTS["products"] + 1):
@@ -48,4 +48,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    generate(parse_lote())

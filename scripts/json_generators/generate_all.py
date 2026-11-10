@@ -4,13 +4,14 @@ from scripts.json_generators.config import (
     POST_SALES_COUNTS,
     TOTAL_POST_SALES,
 )
+from scripts.generators.config import LOTE_DEFAULT, parse_lote
 from scripts.json_generators.utils import build_post_sales_assignment
 
 from scripts.json_generators.generate_warranties import generate_warranties
 from scripts.json_generators.generate_returns import generate_returns
 
 
-def main():
+def main(lote=LOTE_DEFAULT):
     print("=" * 65)
     print("GENERACIÓN DE DATOS JSON - TECHSTORE")
     print("=" * 65)
@@ -29,10 +30,10 @@ def main():
 
 
     print("\nGenerando garantías...")
-    generate_warranties()
+    generate_warranties(lote)
 
     print("\nGenerando devoluciones...")
-    generate_returns()
+    generate_returns(lote)
 
     print("\n" + "=" * 65)
     print("GENERACIÓN JSON COMPLETADA")
@@ -40,4 +41,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(parse_lote())

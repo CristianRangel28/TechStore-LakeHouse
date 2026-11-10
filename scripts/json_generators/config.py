@@ -2,16 +2,14 @@
 
 from scripts.generators.config import (
     COUNTS,
-    PROJECT_DIR,
+    DATA_DIR,
+    LOTE_DEFAULT,
     SEED,
 )
 
 # ==========================================================
 # DIRECTORIOS
 # ==========================================================
-
-JSON_OUTPUT_DIR = PROJECT_DIR / "scripts" / "datasets" / "json"
-
 
 # ==========================================================
 # VOLUMEN DE DATOS

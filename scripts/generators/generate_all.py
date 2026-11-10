@@ -2,7 +2,9 @@
 
 from .config import (
     COUNTS,
-    OUTPUT_DIR,
+    DATA_DIR,
+    LOTE_DEFAULT,
+    parse_lote,
     SALES_DETAIL_DISTRIBUTION,
 )
 
@@ -43,9 +45,8 @@ def validate_configuration():
     print("Configuración validada correctamente.")
 
 
-def main():
+def main(lote=LOTE_DEFAULT):
     validate_configuration()
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print("=" * 60)
     print("GENERACIÓN COMPLETA DE DATOS CSV - TECHSTORE")
@@ -63,13 +64,13 @@ def main():
 
     for label, generator in generators:
         print(f"\n--- {label} ---")
-        generator()
+        generator(lote)
 
     total = sum(COUNTS.values())
     print("\nGeneración terminada.")
     print(f"Total configurado: {total:,} registros.")
-    print(f"Directorio: {OUTPUT_DIR}")
+    print(f"Directorio: {DATA_DIR}")
 
 
 if __name__ == "__main__":
-    main()
+    main(parse_lote())

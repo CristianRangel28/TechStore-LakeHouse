@@ -6,10 +6,10 @@ from decimal import Decimal, InvalidOperation
 
 
 from scripts.generators.config import COUNTS
+from scripts.generators.config import DATA_DIR, LOTE_DEFAULT, parse_lote
 from scripts.generators.sales_data import build_sale_and_details
 
 from scripts.json_generators.config import (
-    JSON_OUTPUT_DIR,
     POST_SALES_COUNTS,
     WARRANTY_STATUSES,
     RETURN_STATUSES,
@@ -358,13 +358,13 @@ def validate_file(path, record_type, used_ids, used_sales):
     return count, errors, used_sales
 
 
-def main():
+def main(lote=LOTE_DEFAULT):
     print("=" * 65)
     print("VALIDACIÓN DE DATOS JSON - TECHSTORE")
     print("=" * 65)
 
-    warranties_path = JSON_OUTPUT_DIR / "garantias.json"
-    returns_path = JSON_OUTPUT_DIR / "devoluciones.json"
+    warranties_path = DATA_DIR / "garantias" / f"lote={lote}" / "garantias.json"
+    returns_path = DATA_DIR / "devoluciones" / f"lote={lote}" / "devoluciones.json"
 
     if not warranties_path.exists() or not returns_path.exists():
         print("\n[ERROR] No se encontraron los archivos JSON.")
@@ -442,4 +442,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(parse_lote())
