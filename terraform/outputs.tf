@@ -12,3 +12,8 @@ output "glue_role_arn" {
   description = "ARN del rol IAM utilizado por AWS Glue"
   value       = aws_iam_role.glue.arn
 }
+
+output "state_machine_arn" {
+  description = "ARN de la state machine del pipeline"
+  value       = aws_sfn_state_machine.lakehouse_pipeline.arn
+}
