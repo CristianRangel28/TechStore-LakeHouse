@@ -11,12 +11,12 @@ locals {
 
 
 resource "aws_glue_job" "bronze_to_silver" {
-  name              = "techstore-bronze-to-silver"
+  name              = "job-techstore-bronze-to-silver"
   role_arn          = aws_iam_role.glue.arn
   glue_version      = "5.1"
   worker_type       = "G.1X"
   number_of_workers = 2
-  timeout           = 20
+  timeout           = 12
   max_retries       = 0
 
 
@@ -39,12 +39,12 @@ resource "aws_glue_job" "bronze_to_silver" {
 }
 
 resource "aws_glue_job" "silver_to_gold" {
-  name              = "techstore-silver-to-gold"
+  name              = "job-techstore-silver-to-gold"
   role_arn          = aws_iam_role.glue.arn
   glue_version      = "5.1"
   worker_type       = "G.1X"
   number_of_workers = 2
-  timeout           = 20
+  timeout           = 12
   max_retries       = 0
 
   command {
