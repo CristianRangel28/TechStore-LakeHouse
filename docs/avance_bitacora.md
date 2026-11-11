@@ -162,3 +162,45 @@ row_number() sin partición mete todos los datos en una sola partición de Spark
 Terraform no duplica recursos: compara el código con el tfstate y solo crea lo nuevo (el plan decía 1 to add).
 
 ![job 2 results](evidencias/terraform/silver_gold_apply.png)
+
+
+
+**Qué hice (Step Functions):**
+- Creé mediante Terraform la máquina de estados techstore-lakehouse-pipeline para orquestar el flujo del Data Warehouse.
+- Configuré dos etapas principales: BronzeToSilver y SilverToGold, ejecutando los Glue Jobs correspondientes.
+- Definí las transiciones entre estados para que, al finalizar Bronze a Silver, se ejecute Silver a Gold.
+- Asocié la máquina de estados con un rol IAM para permitirle invocar los Glue Jobs.
+- Desplegué la infraestructura con Terraform y verifiqué que la máquina de estados quedara creada.
+
+
+**Qué aprendí:**
+- AWS Step Functions permite orquestar servicios y procesos mediante máquinas de estados, definiendo qué tarea se ejecuta y en qué orden.
+- Un estado Task representa una tarea que ejecuta un servicio externo; en nuestro caso, inicia un Glue Job.
+- StartAt define el primer estado y Next indica cuál se ejecuta después.
+- Resource identifica la integración con AWS Glue que ejecuta cada Job.
+- Terraform permite definir la máquina de estados, su definición y los permisos IAM como infraestructura reproducible.
+- La orquestación centraliza el flujo: en lugar de ejecutar manualmente cada Glue Job, Step Functions coordina su ejecución.
+
+
+![Step functions results](evidencias/terraform/step_functions)
+
+
+**Qué se hice(Ajustes en Terraform y orquestación)**
+
+- Se actualizaron los nombres de los Glue Jobs a `job-techstore-bronze-to-silver` y `job-techstore-silver-to-gold`.
+- Se ajustó el tiempo máximo de ejecución de cada Glue Job de 20 a 12 minutos.
+- Se revisó la política IAM de Step Functions para que tenga permisos sobre los nuevos ARN de los Glue Jobs.
+- Se verificó que la máquina de estados utilice los nombres actualizados para ejecutar los dos procesos en orden.
+
+**Qué se aprendió:**
+
+- Terraform permite referenciar atributos de otros recursos, como `.name` y `.arn`, sin declarar variables adicionales.
+- Al cambiar el nombre de un Glue Job, Terraform debe reemplazar ese recurso porque su nombre es inmutable.
+- Step Functions utiliza esos nombres para identificar qué Glue Jobs debe ejecutar.
+- El timeout de Glue limita cuánto puede durar un job; no significa que obligatoriamente vaya a ejecutarse durante ese tiempo.
+
+**Estado:** Se revisó el plan de Terraform y los cambios propuestos. Las pruebas funcionales quedan pendientes para ejecutarse con los scripts definitivos del proyecto.
+
+**Evidencia:** 
+
+![jobs chance](evidencias/terraform/job_chances_apply.png)
