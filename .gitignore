@@ -29,3 +29,6 @@ __pycache__/
 # Datos generados
 data/**/*.csv
 data/**/*.json
+
+# Artefactos de despliegue AWS Glue
+src.zip
