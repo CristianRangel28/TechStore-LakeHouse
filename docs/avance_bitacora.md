@@ -182,7 +182,7 @@ Terraform no duplica recursos: compara el código con el tfstate y solo crea lo 
 - La orquestación centraliza el flujo: en lugar de ejecutar manualmente cada Glue Job, Step Functions coordina su ejecución.
 
 
-![Step functions results](evidencias/terraform/step_functions)
+![Step functions results](evidencias/terraform/step_functions.png)
 
 
 **Qué se hice(Ajustes en Terraform y orquestación)**
@@ -204,3 +204,4 @@ Terraform no duplica recursos: compara el código con el tfstate y solo crea lo 
 **Evidencia:** 
 
 ![jobs chance](evidencias/terraform/job_chances_apply.png)
+![Step functions results](evidencias/terraform/exit_results.png)
