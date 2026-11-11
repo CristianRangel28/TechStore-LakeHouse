@@ -205,3 +205,64 @@ Terraform no duplica recursos: compara el código con el tfstate y solo crea lo 
 
 ![jobs chance](evidencias/terraform/job_chances_apply.png)
 ![Step functions results](evidencias/terraform/exit_results.png)
+
+# Bitácora - Cristian Camilo Rangel (Datasets, Scripts, Apache Spark)
+
+
+Esta sección recopila evidencias de la creación y ejecución de los scripts encargados de generar los datos sintéticos utilizados en el proyecto **TechStore LakeHouse**.
+
+Cada script permite construir conjuntos de datos para representar las diferentes entidades del sistema transaccional y de postventas.
+
+## 1. Generación de clientes
+
+Script encargado de generar registros de clientes para simular la información de los usuarios de la tienda.
+
+![Generación de clientes](/docs\evidencias\scripts\generate_customers.png)
+
+## 2. Generación de marcas
+
+Script encargado de crear las marcas asociadas a los productos comercializados por TechStore.
+
+![Generación de marcas](/docs\evidencias\scripts\generate_brands.png)
+
+## 3. Generación de productos
+
+Script encargado de generar el catálogo de productos, incluyendo información necesaria para representar los artículos tecnológicos de la tienda.
+
+![Generación de productos](/docs\evidencias\scripts\generate_products.png)
+
+## 4. Generación de sucursales
+
+Script encargado de generar información de las diferentes sucursales de la cadena de tiendas.
+
+![Generación de sucursales](/docs\evidencias\scripts\generate_branches.png)
+
+## 5. Generación de métodos de pago
+
+Script encargado de crear los métodos de pago disponibles para las transacciones comerciales.
+
+![Generación de métodos de pago](/docs\evidencias\scripts\generate_payment_methods.png)
+
+## 6. Generación de ventas
+
+Script encargado de generar los registros de ventas, simulando las transacciones realizadas en las diferentes sucursales.
+
+![Generación de ventas](/docs\evidencias\scripts\generate_sales.png)
+
+## 7. Generación de detalles de ventas
+
+Script encargado de generar los detalles asociados a cada venta, permitiendo representar los productos, cantidades y valores correspondientes a cada transacción.
+
+![Generación de detalles de ventas](/docs\evidencias\scripts\generate_sales_details.png)
+
+## 8. Generación de garantías
+
+Script encargado de generar registros de garantías para representar los procesos de postventa relacionados con los productos comercializados.
+
+![Generación de garantías](/docs\evidencias\scripts\generate_warranties.png)
+
+## 9. Generación de devoluciones
+
+Script encargado de generar registros de devoluciones, simulando solicitudes y procesos de devolución de productos.
+
+![Generación de devoluciones](/docs\evidencias\scripts\generate_returns.png)
