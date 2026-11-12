@@ -1,66 +1,104 @@
+"""
+Inicialización y configuración del entorno de ejecución de Apache Spark y AWS Glue.
+"""
+
+import logging
 import sys
 
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
-
 from pyspark.context import SparkContext
 
+logger = logging.getLogger(__name__)
 
-def initialize_job():
+DEFAULT_COMMON_ARGUMENTS = [
+    "bucket",
+    "catalog",
+    "bronze_db",
+    "silver_db",
+    "gold_db",
+    "batch_id",
+    "tables",
+    "JOB_RUN_ID"
+]
+
+
+def initialize_job(required_arguments=None, optional_arguments=None):
     """
-    Inicializa el entorno de AWS Glue y Apache Spark.
+    Inicializa el entorno de AWS Glue y Apache Spark de manera flexible.
 
-    Recupera los argumentos proporcionados por Terraform,
-    crea el contexto de Spark y configura el Glue Job.
+    Permite configurar argumentos requeridos y opcionales para soportar diferentes
+    etapas del LakeHouse (Bronze -> Silver, Silver -> Gold), conservando
+    compatibilidad con llamadas sin parámetros explícitos.
+
+    :param required_arguments: Lista de nombres de argumentos obligatorios (sin '--').
+                               Si es None, se utiliza por defecto ['JOB_NAME'].
+    :param optional_arguments: Lista de nombres de argumentos opcionales (sin '--').
+                               Solo se resuelven si están presentes en sys.argv.
+                               Si es None, inspecciona argumentos estándar del LakeHouse.
+    :return: Diccionario con 'args', 'spark', 'glue_context', 'job' y 'logger'.
     """
+    if required_arguments is None:
+        required_arguments = ["JOB_NAME"]
+        default_candidates = DEFAULT_COMMON_ARGUMENTS
+    else:
+        default_candidates = []
 
-    required_arguments = [
-        "JOB_NAME",
-        "bucket",
-        "bronze_db",
-        "silver_db",
-        "catalog"
+    if optional_arguments is None:
+        optional_arguments = default_candidates
+    else:
+        combined = list(optional_arguments)
+        for candidate in default_candidates:
+            if candidate not in combined:
+                combined.append(candidate)
+        optional_arguments = combined
+
+    # Filtrar únicamente los opcionales que efectivamente fueron provistos en sys.argv
+    present_optional = [
+        arg for arg in optional_arguments
+        if f"--{arg}" in sys.argv and arg not in required_arguments
     ]
+
+    arguments_to_resolve = list(required_arguments) + present_optional
 
     args = getResolvedOptions(
         sys.argv,
-        required_arguments
+        arguments_to_resolve
     )
 
-    # Inicializar Spark
+    # Asignar None por defecto a los opcionales no provistos para evitar KeyError
+    for opt in optional_arguments:
+        args.setdefault(opt, None)
+
+    # Inicializar Spark Context
     spark_context = SparkContext.getOrCreate()
 
-    # Inicializar Glue
+    # Inicializar Glue Context
     glue_context = GlueContext(spark_context)
 
     # Obtener SparkSession
     spark = glue_context.spark_session
 
-    # Inicializar el Job
+    # Inicializar Job de Glue
     job = Job(glue_context)
+    job.init(args["JOB_NAME"], args)
 
-    job.init(
-        args["JOB_NAME"],
-        args
-    )
+    # Obtener logger nativo de Glue
+    glue_logger = glue_context.get_logger()
 
-    # Configurar logger
-    logger = glue_context.get_logger()
-
-    logger.info("====================================")
-    logger.info("TECHSTORE - DATA LAKEHOUSE")
-    logger.info("Inicializando Bronze to Silver")
-    logger.info(f"Bucket: {args['bucket']}")
-    logger.info(f"Bronze DB: {args['bronze_db']}")
-    logger.info(f"Silver DB: {args['silver_db']}")
-    logger.info(f"Catalog: {args['catalog']}")
-    logger.info("====================================")
+    glue_logger.info("====================================")
+    glue_logger.info("TECHSTORE - DATA LAKEHOUSE")
+    glue_logger.info(f"Job inicializado: {args.get('JOB_NAME')}")
+    for key in sorted(args.keys()):
+        if key != "JOB_NAME" and args[key] is not None:
+            glue_logger.info(f"Argumento '{key}': {args[key]}")
+    glue_logger.info("====================================")
 
     return {
         "args": args,
         "spark": spark,
         "glue_context": glue_context,
         "job": job,
-        "logger": logger
+        "logger": glue_logger
     }
