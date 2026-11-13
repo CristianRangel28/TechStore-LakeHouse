@@ -19,8 +19,7 @@ DEFAULT_COMMON_ARGUMENTS = [
     "silver_db",
     "gold_db",
     "batch_id",
-    "tables",
-    "JOB_RUN_ID"
+    "tables"
 ]
 
 
@@ -66,6 +65,14 @@ def initialize_job(required_arguments=None, optional_arguments=None):
         sys.argv,
         arguments_to_resolve
     )
+
+    # Glue registra JOB_RUN_ID por su cuenta; leerlo sin pasarlo al parser.
+    try:
+        job_run_id_index = sys.argv.index("--JOB_RUN_ID")
+        job_run_id = sys.argv[job_run_id_index + 1]
+    except (ValueError, IndexError):
+        job_run_id = None
+    args["JOB_RUN_ID"] = job_run_id
 
     # Asignar None por defecto a los opcionales no provistos para evitar KeyError
     for opt in optional_arguments:

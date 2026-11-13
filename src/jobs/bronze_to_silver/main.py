@@ -29,7 +29,7 @@ def main():
     # 1. INICIALIZACIÓN FLEXIBLE
     context = initialize_job(
         required_arguments=["JOB_NAME", "bucket", "catalog", "bronze_db", "silver_db"],
-        optional_arguments=["batch_id", "tables", "JOB_RUN_ID"]
+        optional_arguments=["batch_id", "tables"]
     )
 
     args = context["args"]
