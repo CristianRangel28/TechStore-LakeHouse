@@ -126,7 +126,11 @@ def upsert_iceberg_table(
     5. Idempotencia y optimización de actualización:
        - No ejecuta UPDATE cuando los atributos de negocio de origen y destino sean idénticos,
          utilizando comparaciones nulo-seguras (`NOT (target.col <=> source.col)`).
-       - Excluye claves primarias y columnas técnicas/auditoría (`_ingestion_*`, `_source_*`).
+       - Columnas inmutables (nunca en UPDATE SET): claves primarias, `_created_batch`,
+         `_ingestion_timestamp`, `_ingestion_batch`, `_source_file`.
+       - Columnas modificables que NO participan en la condición de cambio (se actualizan
+         solo cuando un atributo real de negocio cambia): `_updated_batch`, `_ts_updated`,
+         `source_batch`, y cualquier otra columna que inicie con `_`.
        - Si no existen columnas de negocio modificables, omite la cláusula WHEN MATCHED para evitar
          actualizaciones incondicionales innecesarias.
        - Inserta registros no coincidentes (WHEN NOT MATCHED).
@@ -347,6 +351,8 @@ def upsert_iceberg_table(
 
     # Construcción de cláusula UPDATE (excluyendo PKs y columnas inmutables/auditoría)
     exclude_set = set(primary_keys)
+    # Trazabilidad: _created_batch e _ingestion_timestamp nunca deben sobreescribirse
+    exclude_set.update(["_created_batch", "_ingestion_timestamp", "_ingestion_batch", "_source_file"])
     if exclude_update_cols:
         exclude_set.update(exclude_update_cols)
 
@@ -358,10 +364,16 @@ def upsert_iceberg_table(
 
         # Condición de idempotencia: solo actualizar cuando al menos un valor de negocio haya cambiado
         # Utiliza comparación nulo-segura <=> (NOT target.col <=> source.col)
-        # Excluye columnas técnicas/auditoría (como _ingestion_timestamp, _source_file)
+        # Excluye de la condición de cambio:
+        #   - Columnas técnicas/auditoría que comienzan con '_' (_updated_batch, _ts_updated, etc.)
+        #   - source_batch: columna de linaje de datos que indica el lote de origen Bronze;
+        #     no es un atributo real de negocio y su cambio aislado no debe provocar UPDATE.
+        # Todas estas columnas permanecen en update_columns (SET) para actualizarse
+        # cuando un atributo real de negocio cambie.
+        non_business_cols = {"source_batch"}
         business_update_cols = [
             col for col in update_columns
-            if not col.startswith("_ingestion_") and not col.startswith("_source_") and not col.startswith("_ts_")
+            if not col.startswith("_") and col not in non_business_cols
         ]
         if business_update_cols:
             diff_conditions = " OR ".join([

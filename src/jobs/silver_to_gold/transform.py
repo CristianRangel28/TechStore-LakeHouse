@@ -150,6 +150,29 @@ def resolve_date_fk(
     return result
 
 
+def add_audit_columns(
+    dataframe: DataFrame,
+    batch_id: Optional[str] = None
+) -> DataFrame:
+    """
+    Añade información de auditoría y trazabilidad a nivel de fila en Gold:
+    - _ingestion_timestamp: marca temporal de primera inserción (inmutable).
+    - _ts_updated: marca temporal de última modificación real.
+    - _created_batch: identificador del lote de primera inserción (inmutable).
+    - _updated_batch: identificador del último lote que modificó el registro.
+    - _ingestion_batch: alias de compatibilidad.
+    """
+    now_ts = F.current_timestamp()
+    return (
+        dataframe
+        .withColumn("_ingestion_timestamp", now_ts)
+        .withColumn("_ts_updated", now_ts)
+        .withColumn("_created_batch", F.lit(batch_id))
+        .withColumn("_updated_batch", F.lit(batch_id))
+        .withColumn("_ingestion_batch", F.lit(batch_id))
+    )
+
+
 # ==============================================================================
 # CONSTRUCCIÓN DE DIMENSIONES
 # ==============================================================================
@@ -165,7 +188,7 @@ def build_dim_customer(
     - Clave sustituta: customer_sk (SHA-256 de customer_id).
     - Incorpora fila desconocida (-1 / DESCONOCIDO).
     - Desduplicación: dropDuplicates() sobre todas las columnas para evitar selección arbitraria.
-    - Columnas de auditoría: _ingestion_timestamp, _ingestion_batch.
+    - Columnas de auditoría: _created_batch, _updated_batch, _ingestion_timestamp, _ts_updated, _ingestion_batch.
 
     :param customers_df: DataFrame de la tabla Silver customers.
     :param batch_id: Identificador de lote/ejecución.
@@ -211,11 +234,9 @@ def build_dim_customer(
     unknown_customer = add_surrogate_key(unknown_customer, ["customer_id"], "customer_sk", algorithm="sha256")
 
     # 3. Unificar y añadir auditoría
-    dim_customer = (
-        valid_customers
-        .unionByName(unknown_customer)
-        .withColumn("_ingestion_timestamp", F.current_timestamp())
-        .withColumn("_ingestion_batch", F.lit(batch_id))
+    dim_customer = add_audit_columns(
+        valid_customers.unionByName(unknown_customer),
+        batch_id=batch_id
     )
 
     return dim_customer
@@ -235,7 +256,7 @@ def build_dim_product(
     - Clave sustituta: product_sk (SHA-256 de product_id).
     - Incorpora fila desconocida (-1 / DESCONOCIDO).
     - Desduplicación: dropDuplicates() sobre todas las columnas para evitar descartes arbitrarios.
-    - Columnas de auditoría: _ingestion_timestamp, _ingestion_batch.
+    - Columnas de auditoría: _created_batch, _updated_batch, _ingestion_timestamp, _ts_updated, _ingestion_batch.
 
     :param products_df: DataFrame de la tabla Silver products.
     :param brands_df: DataFrame de la tabla Silver brands.
@@ -306,11 +327,9 @@ def build_dim_product(
     unknown_product = add_surrogate_key(unknown_product, ["product_id"], "product_sk", algorithm="sha256")
 
     # 4. Unificar y auditoría
-    dim_product = (
-        valid_products
-        .unionByName(unknown_product)
-        .withColumn("_ingestion_timestamp", F.current_timestamp())
-        .withColumn("_ingestion_batch", F.lit(batch_id))
+    dim_product = add_audit_columns(
+        valid_products.unionByName(unknown_product),
+        batch_id=batch_id
     )
 
     return dim_product
@@ -327,7 +346,7 @@ def build_dim_branch(
     - Clave sustituta: branch_sk (SHA-256 de branch_id).
     - Incorpora fila desconocida (-1 / DESCONOCIDO).
     - Desduplicación: dropDuplicates() sobre todas las columnas para evitar descartes arbitrarios.
-    - Columnas de auditoría: _ingestion_timestamp, _ingestion_batch.
+    - Columnas de auditoría: _created_batch, _updated_batch, _ingestion_timestamp, _ts_updated, _ingestion_batch.
 
     :param branches_df: DataFrame de la tabla Silver branches.
     :param batch_id: Identificador de lote/ejecución.
@@ -366,11 +385,9 @@ def build_dim_branch(
     )
     unknown_branch = add_surrogate_key(unknown_branch, ["branch_id"], "branch_sk", algorithm="sha256")
 
-    dim_branch = (
-        valid_branches
-        .unionByName(unknown_branch)
-        .withColumn("_ingestion_timestamp", F.current_timestamp())
-        .withColumn("_ingestion_batch", F.lit(batch_id))
+    dim_branch = add_audit_columns(
+        valid_branches.unionByName(unknown_branch),
+        batch_id=batch_id
     )
 
     return dim_branch
@@ -387,7 +404,7 @@ def build_dim_payment_method(
     - Clave sustituta: payment_method_sk (SHA-256 de payment_method_id).
     - Incorpora fila desconocida (-1 / DESCONOCIDO).
     - Desduplicación: dropDuplicates() sobre todas las columnas para evitar descartes arbitrarios.
-    - Columnas de auditoría: _ingestion_timestamp, _ingestion_batch.
+    - Columnas de auditoría: _created_batch, _updated_batch, _ingestion_timestamp, _ts_updated, _ingestion_batch.
 
     :param payment_methods_df: DataFrame de la tabla Silver payment_methods.
     :param batch_id: Identificador de lote/ejecución.
@@ -420,11 +437,9 @@ def build_dim_payment_method(
     )
     unknown_pm = add_surrogate_key(unknown_pm, ["payment_method_id"], "payment_method_sk", algorithm="sha256")
 
-    dim_pm = (
-        valid_pm
-        .unionByName(unknown_pm)
-        .withColumn("_ingestion_timestamp", F.current_timestamp())
-        .withColumn("_ingestion_batch", F.lit(batch_id))
+    dim_pm = add_audit_columns(
+        valid_pm.unionByName(unknown_pm),
+        batch_id=batch_id
     )
 
     return dim_pm
@@ -443,7 +458,7 @@ def build_dim_date(
     - No utiliza SHA-256 para fechas.
     - Incorpora fila desconocida (-1 / DESCONOCIDO).
     - Genera rango calendario completo (2015 a 2030) garantizando cobertura para todas las entidades.
-    - Columnas de auditoría: _ingestion_timestamp, _ingestion_batch.
+    - Columnas de auditoría: _created_batch, _updated_batch, _ingestion_timestamp, _ts_updated, _ingestion_batch.
 
     :param spark: SparkSession activa.
     :param start_date: Fecha inicio en formato YYYY-MM-DD.
@@ -488,11 +503,9 @@ def build_dim_date(
         )
     )
 
-    dim_date = (
-        calendar_dates
-        .unionByName(unknown_date)
-        .withColumn("_ingestion_timestamp", F.current_timestamp())
-        .withColumn("_ingestion_batch", F.lit(batch_id))
+    dim_date = add_audit_columns(
+        calendar_dates.unionByName(unknown_date),
+        batch_id=batch_id
     )
 
     return dim_date
@@ -611,7 +624,7 @@ def build_fact_sales(
     )
 
     # 5. Proyección ordenada y auditoría
-    fact_sales = (
+    fact_sales = add_audit_columns(
         fact_with_date
         .select(
             F.col("sale_detail_id"),
@@ -626,10 +639,9 @@ def build_fact_sales(
             F.col("unit_price"),
             F.col("line_discount_amount"),
             F.col("line_subtotal_amount"),
-            F.col("sale_status"),
-            F.current_timestamp().alias("_ingestion_timestamp"),
-            F.lit(batch_id).alias("_ingestion_batch")
-        )
+            F.col("sale_status")
+        ),
+        batch_id=batch_id
     )
 
     return fact_sales
@@ -704,7 +716,7 @@ def build_fact_warranties(
         target_sk_col="date_sk"
     )
 
-    fact_warranties = (
+    fact_warranties = add_audit_columns(
         fact_with_date
         .select(
             F.col("after_sales_id"),
@@ -720,10 +732,9 @@ def build_fact_warranties(
             F.col("reason"),
             F.col("description"),
             F.col("status"),
-            F.col("observation"),
-            F.current_timestamp().alias("_ingestion_timestamp"),
-            F.lit(batch_id).alias("_ingestion_batch")
-        )
+            F.col("observation")
+        ),
+        batch_id=batch_id
     )
 
     return fact_warranties
@@ -802,7 +813,7 @@ def build_fact_returns(
         target_sk_col="date_sk"
     )
 
-    fact_returns = (
+    fact_returns = add_audit_columns(
         fact_with_date
         .select(
             F.col("after_sales_id"),
@@ -821,10 +832,9 @@ def build_fact_returns(
             F.col("observation"),
             F.col("approved_refund_percentage"),
             F.col("refund_amount"),
-            F.col("refund_currency"),
-            F.current_timestamp().alias("_ingestion_timestamp"),
-            F.lit(batch_id).alias("_ingestion_batch")
-        )
+            F.col("refund_currency")
+        ),
+        batch_id=batch_id
     )
 
     return fact_returns
