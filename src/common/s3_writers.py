@@ -385,6 +385,7 @@ def upsert_iceberg_table(
     view_uid = uuid.uuid4().hex[:8]
     temp_source_view = f"_src_{table_name.replace('-', '_')}_{view_uid}"
 
+    dedup_df = dedup_df.localCheckpoint()
     dedup_df.createOrReplaceTempView(temp_source_view)
 
     merge_sql = f"""
