@@ -206,6 +206,35 @@ Terraform no duplica recursos: compara el código con el tfstate y solo crea lo 
 ![jobs chance](evidencias/terraform/job_chances_apply.png)
 ![Step functions results](evidencias/terraform/exit_results.png)
 
+## 12 de noviembre de 2026 - Integración del ETL de Cristian en Glue
+
+**Qué hice:**
+
+Moví el rol y las políticas de Step Functions a iam.tf. El plan salió sin cambios, solo cambió de archivo.
+Creé artifacts.tf: Terraform empaqueta src/ en src.zip (archive_file) y sube src.zip y bronze_to_silver.py a scripts/ (aws_s3_object). Ya no se suben a mano.
+Declaré el proveedor archive en required_providers y agregué --extra-py-files a los dos jobs, para que Glue encuentre el código de src/.
+Probé el job de Bronze a Silver con --tables=brands y luego con customers. Corrigí tres errores que solo aparecieron en Glue (con Codex y sobre la misma rama).
+
+**Errores encontrados (en local no se veían):**
+
+JOB_RUN_ID duplicado: Glue 5.1 ya lo registra, y pasarlo a getResolvedOptions daba un conflicto de argumentos. Se quitó de la lista y se lee desde sys.argv.
+glue_logger: es un objeto Java con info, warn y error, y un solo texto. No acepta formato %s con argumentos ni warning(). Se agregó un adaptador en src/common.
+MERGE: Spark exige que el DataFrame de origen sea determinista (INVALID_NON_DETERMINISTIC_EXPRESSIONS). Se arregló antes del MERGE.
+
+**Resultados:**
+
+brands: 100 filas en techstore_silver.brands (Iceberg). La fila del encabezado del CSV quedó rechazada por la validación.
+Columnas en inglés, con columnas de auditoría (_ingestion_timestamp, _ingestion_batch, _source_file).
+Repetir la carga con otro batch_id mantuvo 100 filas y ninguna se actualizó: el MERGE es idempotente y detecta que no hay cambios. El snapshot overwrite fue solo Iceberg reescribiendo el archivo.
+Snapshots: 0 registros (corrida fallida), 100 (primera carga) y 100 (corrida repetida), disponibles para time travel.
+customers: 500.000 filas en 144 s, 0,08 DPU-horas y unos 0,035 USD.
+
+
+**Evidencia:** 
+
+![versionamiento](evidencias/terraform/prueba_snapshots.png)
+![prueba flujo](evidencias/terraform/prueba_bronze_silver.png)
+
 # Bitácora - Cristian Camilo Rangel (Datasets, Scripts, Apache Spark)
 
 

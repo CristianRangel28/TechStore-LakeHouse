@@ -9,6 +9,7 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
+from src.common.logging_utils import GlueLoggerAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ def initialize_job(required_arguments=None, optional_arguments=None):
     job.init(args["JOB_NAME"], args)
 
     # Obtener logger nativo de Glue
-    glue_logger = glue_context.get_logger()
+    glue_logger = GlueLoggerAdapter(glue_context.get_logger())
 
     glue_logger.info("====================================")
     glue_logger.info("TECHSTORE - DATA LAKEHOUSE")

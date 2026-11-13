@@ -48,9 +48,9 @@ def main():
         timestamp_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         unique_suffix = uuid.uuid4().hex[:8]
         batch_id = f"batch_{timestamp_str}_{unique_suffix}"
-        glue_logger.info("Identificador de lote no provisto. Generado ID único: %s", batch_id)
+        glue_logger.info(f"Identificador de lote no provisto. Generado ID único: {batch_id}")
     else:
-        glue_logger.info("Utilizando identificador de ejecución/lote: %s", batch_id)
+        glue_logger.info(f"Utilizando identificador de ejecución/lote: {batch_id}")
 
     glue_logger.info("Iniciando pipeline Bronze to Silver")
 
@@ -58,7 +58,7 @@ def main():
     selected_tables = None
     if args.get("tables"):
         selected_tables = [table.strip() for table in args["tables"].split(",") if table.strip()]
-        glue_logger.info("Tablas seleccionadas para extracción: %s", selected_tables)
+        glue_logger.info(f"Tablas seleccionadas para extracción: {selected_tables}")
 
     dataframes = extract_all(
         spark=spark,
@@ -71,7 +71,7 @@ def main():
 
     for table_name, raw_dataframe in dataframes.items():
         glue_logger.info("==================================================")
-        glue_logger.info("Procesando entidad: %s", table_name)
+        glue_logger.info(f"Procesando entidad: {table_name}")
 
         # 1. Transformación, detección de rechazos antes del casteo y tipado
         transformed_df = transform_entity(
@@ -123,17 +123,11 @@ def main():
                 "combinaciones_rechazo": combinations_breakdown
             }
 
-            glue_logger.info(
-                "[MÉTRICAS] %s -> Leídos: %d | Válidos: %d | Rechazados: %d",
-                table_name, raw_count, valid_count, rejected_count
-            )
+            glue_logger.info(f"[MÉTRICAS] {table_name} -> Leídos: {raw_count} | Válidos: {valid_count} | Rechazados: {rejected_count}")
 
             # 4. Si existen registros rechazados, registrar causas individuales y muestra diagnóstica mínima (PK y motivo)
             if rejected_count > 0:
-                glue_logger.warning(
-                    "[VALIDATION] Se detectaron %d registro(s) rechazado(s) en '%s'. Causas individuales: %s",
-                    rejected_count, table_name, individual_causes
-                )
+                glue_logger.warning(f"[VALIDATION] Se detectaron {rejected_count} registro(s) rechazado(s) en '{table_name}'. Causas individuales: {individual_causes}")
                 pk_col = PRIMARY_KEYS.get(table_name)
                 sample_cols = (
                     [pk_col, "_rejection_reason"]
@@ -147,10 +141,7 @@ def main():
                     .collect()
                 )
                 sample_dicts = [row.asDict() for row in sample_rejected]
-                glue_logger.warning(
-                    "[VALIDATION] Muestra diagnóstica de registros rechazados en '%s' (PK y motivo): %s",
-                    table_name, sample_dicts
-                )
+                glue_logger.warning(f"[VALIDATION] Muestra diagnóstica de registros rechazados en '{table_name}' (PK y motivo): {sample_dicts}")
 
             # 5. Carga en Iceberg de los registros válidos (se excluyen rechazados y se remueve _rejection_reason)
             # Notar que 'validos' representa registros aptos para carga; upsert_iceberg_table aplicará
@@ -172,25 +163,13 @@ def main():
     # 5. RESUMEN DE EJECUCIÓN
     glue_logger.info("==================================================")
     glue_logger.info("RESUMEN DE EJECUCIÓN BRONZE -> SILVER")
-    glue_logger.info("Identificador de Ejecución (_ingestion_batch): %s", batch_id)
+    glue_logger.info(f"Identificador de Ejecución (_ingestion_batch): {batch_id}")
     for table_name, metrics in execution_metrics.items():
-        if metrics["rechazados"] > 0:
-            glue_logger.info(
-                " - %s: %d leídos, %d válidos, %d rechazados (causas individuales: %s)",
-                table_name,
-                metrics["leidos"],
-                metrics["validos"],
-                metrics["rechazados"],
-                metrics["causas_individuales"]
-            )
-            glue_logger.info("   Combinaciones de rechazo: %s", metrics["combinaciones_rechazo"])
+        if metrics['rechazados'] > 0:
+            glue_logger.info(f" - {table_name}: {metrics['leidos']} leídos, {metrics['validos']} válidos, {metrics['rechazados']} rechazados (causas individuales: {metrics['causas_individuales']})")
+            glue_logger.info(f"   Combinaciones de rechazo: {metrics['combinaciones_rechazo']}")
         else:
-            glue_logger.info(
-                " - %s: %d leídos, %d válidos, 0 rechazados",
-                table_name,
-                metrics["leidos"],
-                metrics["validos"]
-            )
+            glue_logger.info(f" - {table_name}: {metrics['leidos']} leídos, {metrics['validos']} válidos, 0 rechazados")
     glue_logger.info("==================================================")
 
     glue_logger.info("Bronze to Silver finalizado exitosamente.")
