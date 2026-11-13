@@ -1,5 +1,6 @@
 locals {
-  catalog = "glue_catalog"
+  catalog        = "glue_catalog"
+  extra-py-files = "s3://${aws_s3_bucket.lakehouse.bucket}/scripts/src.zip"
   iceberg_conf = join(" --conf ", [
     "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
     "spark.sql.catalog.${local.catalog}=org.apache.iceberg.spark.SparkCatalog",
@@ -34,6 +35,7 @@ resource "aws_glue_job" "bronze_to_silver" {
     "--bucket"                  = aws_s3_bucket.lakehouse.bucket
     "--bronze_db"               = aws_glue_catalog_database.bronze.name
     "--silver_db"               = aws_glue_catalog_database.silver.name
+    "--extra-py-files"          = local.extra-py-files
   }
 
 }
@@ -59,5 +61,6 @@ resource "aws_glue_job" "silver_to_gold" {
     "--catalog"                 = local.catalog
     "--silver_db"               = aws_glue_catalog_database.silver.name
     "--gold_db"                 = aws_glue_catalog_database.gold.name
+    "--extra-py-files"          = local.extra-py-files
   }
 }

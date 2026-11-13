@@ -32,6 +32,7 @@ data/**/*.json
 
 # Artefactos de despliegue AWS Glue
 src.zip
+build/
 
 # Entorno virtual de Python
 .venv/
