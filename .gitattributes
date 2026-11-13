@@ -1,0 +1,6 @@
+# Mantener finales de línea LF en archivos de código.
+* text=auto eol=lf
+
+# Archivos de Windows que requieren CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
