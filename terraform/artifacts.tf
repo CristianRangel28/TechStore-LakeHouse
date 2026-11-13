@@ -24,3 +24,10 @@ resource "aws_s3_object" "bronze_to_silver_script" {
   source = "${path.module}/../deployment/glue/bronze_to_silver.py"
   etag   = filemd5("${path.module}/../deployment/glue/bronze_to_silver.py")
 }
+
+resource "aws_s3_object" "silver_to_gold_script" {
+  bucket = aws_s3_bucket.lakehouse.id
+  key    = "scripts/silver_to_gold.py"
+  source = "${path.module}/../deployment/glue/silver_to_gold.py"
+  etag   = filemd5("${path.module}/../deployment/glue/silver_to_gold.py")
+}
