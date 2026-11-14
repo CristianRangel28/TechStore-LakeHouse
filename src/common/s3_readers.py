@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def read_catalog_table(spark, database, table_name):
+def read_catalog_table(spark, database, table_name, partition_filter=None):
     """
     Lee una tabla estándar registrada en el Glue Data Catalog (capa Bronze).
 
@@ -22,6 +22,7 @@ def read_catalog_table(spark, database, table_name):
     :param spark: SparkSession activa.
     :param database: Nombre de la base de datos en Glue Data Catalog (ej. techstore_bronze).
     :param table_name: Nombre de la tabla física (ej. raw_clientes).
+    :param partition_filter: Condición Column de PySpark opcional para aplicar partition pruning.
     :return: DataFrame de PySpark.
     """
     if not database or not str(database).strip():
@@ -34,6 +35,9 @@ def read_catalog_table(spark, database, table_name):
 
     try:
         dataframe = spark.table(table_identifier)
+        if partition_filter is not None:
+            logger.info("[READ-CATALOG] Aplicando filtro de partición sobre %s", table_identifier)
+            dataframe = dataframe.filter(partition_filter)
     except Exception as exc:
         logger.error(
             "[READ-CATALOG] Error al intentar leer la tabla '%s' desde Glue Data Catalog: %s",

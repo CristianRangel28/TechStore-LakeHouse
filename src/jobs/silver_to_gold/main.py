@@ -128,7 +128,7 @@ def main() -> None:
     silver_db = args["silver_db"]
     gold_db = args["gold_db"]
 
-    batch_id = args.get("batch_id") or args.get("JOB_RUN_ID")
+    batch_id = args.get("batch_id")
     if not batch_id:
         timestamp_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         unique_suffix = uuid.uuid4().hex[:8]
@@ -331,7 +331,7 @@ def main() -> None:
     # ==========================================================================
     glue_logger.info(f"==================================================")
     glue_logger.info(f"[PASO 8/8] RESUMEN DE EJECUCIÓN SILVER -> GOLD")
-    glue_logger.info(f"[PASO 8/8] Identificador de Lote (_ingestion_batch): {batch_id}")
+    glue_logger.info(f"[PASO 8/8] Identificador de Lote: {batch_id}")
     for table_name, metrics in execution_metrics.items():
         glue_logger.info(f"[PASO 8/8]  - {table_name}: {metrics['registros_procesados']} registros procesados/cargados")
     glue_logger.info(f"==================================================")

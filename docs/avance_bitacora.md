@@ -235,6 +235,28 @@ customers: 500.000 filas en 144 s, 0,08 DPU-horas y unos 0,035 USD.
 ![versionamiento](evidencias/terraform/prueba_snapshots.png)
 ![prueba flujo](evidencias/terraform/prueba_bronze_silver.png)
 
+
+## 13/11/2026 – Despliegue y validación de tablas Silver y Gold
+
+**Qué hice:**
+- Actualicé `terraform/artifacts.tf` para desplegar los artefactos del ETL.
+- Ejecuté consultas en Athena para verificar las tablas y los registros cargados en Silver y Gold.
+- Guardé capturas como evidencia de las cargas y consultas realizadas.
+
+**Qué aprendí:**
+- A validar las tablas del Data Warehouse mediante Athena.
+- A comprobar que las capas Silver y Gold contienen los datos procesados.
+- A utilizar consultas SQL para verificar la estructura y el contenido del modelo dimensional.
+
+**Evidencias:**
+![Tablas silver](/docs\evidencias\terraform\tablas_silver.png)
+![Resultado de tablas silver](/docs\evidencias\terraform\load_tabla_silver.png)
+![Tablas en gold modelo estrella](/docs\evidencias\terraform\tablas_gold.png)
+![Resultado tablas gold](/docs\evidencias\terraform\load_tabla_gold.png)
+![Resultado con step functions](/docs\evidencias\terraform\resultado_machine.png)
+
+
+
 # Bitácora - Cristian Camilo Rangel (Datasets, Scripts, Apache Spark)
 
 

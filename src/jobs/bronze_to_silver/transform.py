@@ -254,8 +254,13 @@ def cast_column_types(dataframe):
 
 def add_audit_columns(dataframe, batch_id):
     """
-    Añade información de auditoría y trazabilidad a nivel de fila.
-    Maneja de forma segura input_file_name() asignando 'unknown' si es nulo o vacío.
+    Añade información de auditoría y trazabilidad a nivel de fila:
+    - _ingestion_timestamp: marca temporal de primera inserción (inmutable).
+    - _ts_updated: marca temporal de última modificación real.
+    - _created_batch: identificador del lote de primera inserción (inmutable).
+    - _updated_batch: identificador del último lote que modificó el registro.
+    - _source_file: ruta del archivo origen.
+    - _ingestion_batch: alias de compatibilidad hacia atrás.
     """
     source_file_expr = (
         F.when(
@@ -263,10 +268,14 @@ def add_audit_columns(dataframe, batch_id):
             F.input_file_name()
         ).otherwise(F.lit("unknown"))
     )
+    now_ts = F.current_timestamp()
 
     return (
         dataframe
-        .withColumn("_ingestion_timestamp", F.current_timestamp())
+        .withColumn("_ingestion_timestamp", now_ts)
+        .withColumn("_ts_updated", now_ts)
+        .withColumn("_created_batch", F.lit(batch_id))
+        .withColumn("_updated_batch", F.lit(batch_id))
         .withColumn("_ingestion_batch", F.lit(batch_id))
         .withColumn("_source_file", source_file_expr)
     )
@@ -423,7 +432,7 @@ def transform_entity(dataframe, entity_name, batch_id):
     # 5. Tipado de datos
     df = cast_column_types(df)
 
-    # 6. Trazabilidad
+    # 6. Trazabilidad (_created_batch, _updated_batch, _ingestion_timestamp, _ts_updated, _source_file)
     df = add_audit_columns(df, batch_id)
 
     return df

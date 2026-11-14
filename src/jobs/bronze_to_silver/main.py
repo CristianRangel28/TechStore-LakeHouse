@@ -29,7 +29,7 @@ def main():
     # 1. INICIALIZACIÓN FLEXIBLE
     context = initialize_job(
         required_arguments=["JOB_NAME", "bucket", "catalog", "bronze_db", "silver_db"],
-        optional_arguments=["batch_id", "tables"]
+        optional_arguments=["batch_id", "tables", "source_batch"]
     )
 
     args = context["args"]
@@ -41,9 +41,10 @@ def main():
     bronze_db = args["bronze_db"]
     silver_db = args["silver_db"]
 
-    # 2. RESOLUCIÓN DE TRAZABILIDAD (_ingestion_batch)
-    # Prioridad: 1) batch_id explícito, 2) JOB_RUN_ID de Glue, 3) UUID determinístico único
-    batch_id = args.get("batch_id") or args.get("JOB_RUN_ID")
+    # 2. RESOLUCIÓN DE TRAZABILIDAD (batch_id)
+    # Prioridad: 1) batch_id explícito provisto como argumento (--batch_id)
+    #            2) Generación automática de identificador único (para ejecuciones manuales sin argumento)
+    batch_id = args.get("batch_id")
     if not batch_id:
         timestamp_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         unique_suffix = uuid.uuid4().hex[:8]
@@ -60,10 +61,15 @@ def main():
         selected_tables = [table.strip() for table in args["tables"].split(",") if table.strip()]
         glue_logger.info(f"Tablas seleccionadas para extracción: {selected_tables}")
 
+    source_batch = args.get("source_batch")
+    if source_batch:
+        glue_logger.info(f"Extracción incremental activada: lote={source_batch}")
+
     dataframes = extract_all(
         spark=spark,
         bronze_db=bronze_db,
-        selected_tables=selected_tables
+        selected_tables=selected_tables,
+        source_batch=source_batch
     )
 
     # 4. TRANSFORMACIÓN Y CARGA OPTIMIZADA
@@ -163,7 +169,7 @@ def main():
     # 5. RESUMEN DE EJECUCIÓN
     glue_logger.info("==================================================")
     glue_logger.info("RESUMEN DE EJECUCIÓN BRONZE -> SILVER")
-    glue_logger.info(f"Identificador de Ejecución (_ingestion_batch): {batch_id}")
+    glue_logger.info(f"Identificador de Lote: {batch_id}")
     for table_name, metrics in execution_metrics.items():
         if metrics['rechazados'] > 0:
             glue_logger.info(f" - {table_name}: {metrics['leidos']} leídos, {metrics['validos']} válidos, {metrics['rechazados']} rechazados (causas individuales: {metrics['causas_individuales']})")

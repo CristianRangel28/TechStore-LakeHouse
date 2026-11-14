@@ -36,7 +36,9 @@ def load_iceberg(
 
     - Catálogo: Utiliza el catálogo Iceberg configurado (ej. glue_catalog).
     - Formato: Iceberg v2 con 'write.distribution-mode' = 'hash'.
-    - Exclusión: Preserva el `_ingestion_timestamp` y `_source_file` original en actualizaciones.
+    - Exclusiones de UPDATE: Las columnas inmutables de trazabilidad (_created_batch,
+      _ingestion_timestamp, _ingestion_batch, _source_file) se excluyen de forma centralizada
+      en upsert_iceberg_table. No se pasan aquí para evitar duplicación.
     - Integridad: Recibe datos previamente validados por la capa de transformación. upsert_iceberg_table
       actúa como salvaguarda estricta (falla si recibe claves primarias nulas).
     - Conflictos intra-lote: No utiliza deduplicación arbitraria por timestamps (`dedup_order_col=None`).
@@ -65,6 +67,8 @@ def load_iceberg(
     )
 
     # 2. Ejecutar UPSERT mediante el helper común (recibe el DataFrame validado directamente)
+    # Las columnas inmutables de trazabilidad (_created_batch, _ingestion_timestamp,
+    # _ingestion_batch, _source_file) se excluyen de UPDATE centralmente en upsert_iceberg_table.
     upsert_iceberg_table(
         dataframe=dataframe,
         spark=spark,
@@ -77,7 +81,6 @@ def load_iceberg(
             "format-version": "2",
             "write.distribution-mode": "hash"
         },
-        exclude_update_cols=["_ingestion_timestamp", "_source_file"],
         dedup_order_col=None
     )
 
