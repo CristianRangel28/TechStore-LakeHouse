@@ -3,6 +3,7 @@ Extracción de datos desde Bronze mediante AWS Glue Data Catalog.
 """
 
 import logging
+from pyspark.sql import functions as F
 from src.common.s3_readers import read_catalog_table
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ SOURCES = {
 }
 
 
-def extract_table(spark, bronze_db, table_name):
+def extract_table(spark, bronze_db, table_name, source_batch=None):
     """
     Lee una tabla estándar de la capa Bronze en Glue Data Catalog.
     Utiliza el catálogo de sesión de Spark para no entrar en conflicto con el catálogo Iceberg.
@@ -28,13 +29,20 @@ def extract_table(spark, bronze_db, table_name):
     :param spark: SparkSession activa.
     :param bronze_db: Base de datos en Glue Catalog (ej. techstore_bronze).
     :param table_name: Nombre de la tabla física descubierta por el Crawler (ej. raw_clientes).
+    :param source_batch: Parámetro opcional para filtrado incremental por partición 'lote' (ej. '2').
     :return: DataFrame de PySpark.
     """
     logger.info("[EXTRACT] Extrayendo fuente física: %s.%s", bronze_db, table_name)
-    return read_catalog_table(spark, bronze_db, table_name)
+    partition_filter = None
+    if source_batch is not None:
+        batch_val = str(source_batch).strip()
+        logger.info("[EXTRACT] Filtro incremental: partición lote = '%s' en %s", batch_val, table_name)
+        partition_filter = F.col("lote") == batch_val
+
+    return read_catalog_table(spark, bronze_db, table_name, partition_filter=partition_filter)
 
 
-def extract_all(spark, bronze_db, selected_tables=None, catalog=None):
+def extract_all(spark, bronze_db, selected_tables=None, catalog=None, source_batch=None):
     """
     Extrae las tablas seleccionadas o las nueve fuentes completas de la capa Bronze.
 
@@ -42,6 +50,7 @@ def extract_all(spark, bronze_db, selected_tables=None, catalog=None):
     :param bronze_db: Base de datos Bronze.
     :param selected_tables: Lista opcional con los nombres lógicos a extraer.
     :param catalog: Parámetro obsoleto mantenido por retrocompatibilidad (no se utiliza).
+    :param source_batch: Parámetro opcional para filtrado incremental por partición 'lote'.
     :return: Diccionario con pares {nombre_logico: DataFrame}.
     """
     if selected_tables is None:
@@ -58,7 +67,8 @@ def extract_all(spark, bronze_db, selected_tables=None, catalog=None):
         dataframes[name] = extract_table(
             spark,
             bronze_db,
-            raw_table_name
+            raw_table_name,
+            source_batch=source_batch
         )
 
     logger.info("Extracción completada para %d tabla(s) seleccionada(s).", len(dataframes))

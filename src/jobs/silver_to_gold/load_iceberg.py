@@ -37,10 +37,11 @@ GOLD_PARTITION_SCHEMAS: Dict[str, Optional[List[str]]] = {
     "fact_returns": None
 }
 
-# Columnas de auditoría que no deben sobreescribirse en caso de actualización (UPDATE)
-EXCLUDE_UPDATE_COLUMNS: List[str] = [
-    "_ingestion_timestamp"
-]
+# Columnas de auditoría que no deben sobreescribirse en caso de actualización (UPDATE).
+# Nota: Las columnas inmutables de trazabilidad (_created_batch, _ingestion_timestamp,
+# _ingestion_batch, _source_file) se excluyen centralmente en upsert_iceberg_table
+# de src.common.s3_writers. No se duplican aquí para evitar divergencias.
+# Gold no tiene _source_file, por lo que no es necesario agregarla a la lista.
 
 
 def load_gold_table(
@@ -85,8 +86,7 @@ def load_gold_table(
         database=gold_db,
         table_name=table_name,
         primary_keys=primary_keys,
-        partition_cols=partition_cols,
-        exclude_update_cols=EXCLUDE_UPDATE_COLUMNS
+        partition_cols=partition_cols
     )
 
     logger.info(

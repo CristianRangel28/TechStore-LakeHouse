@@ -20,7 +20,8 @@ DEFAULT_COMMON_ARGUMENTS = [
     "silver_db",
     "gold_db",
     "batch_id",
-    "tables"
+    "tables",
+    "source_batch"
 ]
 
 
